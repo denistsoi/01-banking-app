@@ -4,6 +4,7 @@
   "description": "Express API for refugeek example app",
   "main": "index.js",
   "scripts": {
+    "start": "nodemon index.js",
     "start-dev": "nodemon index.js"
   },
   "author": "Denis Tsoi",

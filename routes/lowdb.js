@@ -3,30 +3,9 @@ const FileSync = require('lowdb/adapters/FileSync');
 const adapter = new FileSync('./.data/lowdb/users.json')
 const db = low(adapter);
 
+const Account = require('../lib/account');
 
 db.defaults({ accounts: [], count: 0}).write();
-
-// helper function
-const generateAccount = () => {
-   return Math.floor(Math.random()*90000) + 10000;
-}
-
-class Account {
-  constructor(props) {
-    this.id = generateAccount();
-    this.name = props.name;
-    this.pin = props.pin;
-    this.balance = 0;
-  }
-  
-  get details () {
-    return {
-      id: this.id,
-      name: this.name,
-      balance: this.balance,
-    }
-  }
-}
 
 /**
   1. create account
@@ -56,11 +35,29 @@ const createAccount = async (req, res) => {
   or 
   - send error
 */
-const deposit = (req, res) => {
+const deposit = async (req, res) => {
   const { id, pin, deposit } = req.body;
 
   // validate account & pin
-  db.get('accounts').find({ id })
+  let account = await db.get('accounts').find({ id: parseInt(id) }).value();
+  
+  if (!account) {
+    return res.send("Err: no account");
+  }
+
+  if (account.pin !== pin) {
+    return res.send("Err: pin error");
+  }
+
+  await db
+    .get('accounts')
+    .find({ id: parseInt(id) })
+    .assign({ 
+      balance: account.balance + parseInt(deposit) 
+    })
+    .write();
+
+  return res.send("Deposit has been entered into account");
 }
 
 /**
@@ -72,10 +69,32 @@ const deposit = (req, res) => {
    or
    - send error
 */
-const withdraw = (req, res) => {
+const withdraw = async (req, res) => {
   const { id, pin, withdrawal } = req.body;
   
-  // validate account & pin
+  let account = await db.get('accounts').find({ id: parseInt(id) }).value();
+  
+  if (!account) {
+    return res.send("Err: no account");
+  }
+
+  if (account.pin !== pin) {
+    return res.send("Err: pin error");
+  }
+
+  if (account.balance < withdrawal) {
+    return res.send("Err: insufficient balance");
+  }
+
+  await db
+    .get('accounts')
+    .find({ id: parseInt(id) })
+    .assign({ 
+      balance: account.balance - parseInt(withdrawal)
+    })
+    .write();
+
+  return res.send("Successful withdrawal"); 
 }
 
 /**
@@ -86,20 +105,55 @@ const withdraw = (req, res) => {
    or 
    - send error
 */
-const checkBalance = (req, res) => {
+const checkBalance = async (req, res) => {
   const { id, pin } = req.body;
   
   // validate account & pin
+  let account = await db.get('accounts').find({ id: parseInt(id) }).value();
+  
+  if (!account) {
+    return res.send("Err: no account");
+  }
+
+  if (account.pin !== pin) {
+    return res.send("Err: pin error");
+  }
+
+  return res.send("Balance: " + account.balance);   
 }
 
 
 /**
     5. change pin
 */
-const changePin = (req, res) => {
+const changePin = async (req, res) => {
   const { id, oldPin, newPin, newPinConfirmation } = req.body;
   
   // validate account & pin
+
+  let account = await db.get('accounts').find({ id: parseInt(id) }).value();
+  
+  if (!account) {
+    return res.send("Err: no account");
+  }
+
+  if (account.pin !== pin) {
+    return res.send("Err: pin error");
+  }
+
+  if (newPin !== newPinConfirmation) {
+    return res.send("Err: new Pin error, does not match");
+  }
+
+  await db
+    .get('accounts')
+    .find({ id: parseInt(id) })
+    .assign({ 
+      pin: newPin
+    })
+    .write();
+
+  return res.send("Pin successfully changed");
 }
 
 // debug - list users
@@ -115,6 +169,7 @@ const deleteAccount = async (req, res) => {
   const { id } = req.body;
 
   // delete account
+  res.send("Todo: delete account");
 }
 
 
