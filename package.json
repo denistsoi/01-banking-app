@@ -1,0 +1,19 @@
+{
+  "name": "01-banking-app",
+  "version": "0.1.0",
+  "description": "Express API for refugeek example app",
+  "main": "index.js",
+  "scripts": {
+    "start-dev": "nodemon index.js"
+  },
+  "author": "Denis Tsoi",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.3",
+    "lowdb": "^1.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.3"
+  }
+}
