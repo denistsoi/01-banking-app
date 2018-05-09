@@ -8,5 +8,8 @@ banking app example.
 
 mkdir .data
 
+docker build . -t rg-app
+docker run -p 80:80 rg-app
+
 ### License
 MIT
